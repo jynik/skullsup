@@ -1,0 +1,59 @@
+#!/bin/sh
+
+source /etc/init.d/skullsup-queue-reader-daemon.env
+
+start() {
+    echo 'Starting SkullsUp! Queue Reader...'
+    mkdir -p ${SKULLSUP_LOG_DIR}
+    daemonize -u skullsup                           \
+              -c ${SKULLSUP_DIR}                    \
+              -e ${SKULLSUP_ERR_FILE}               \
+              -p ${SKULLSUP_PID_FILE}               \
+              -l ${SKULLSUP_PID_FILE}               \
+              /usr/bin/skullsup-queue-reader        \
+                  --remote ${SKULLSUP_REMOTE_HOST}  \
+                  --port   ${SKULLSUP_REMOTE_PORT} 	\
+                  --period ${SKULLSUP_POLL_PERIOD}  \
+                  --log    ${SKULLSUP_LOG_FILE}     \
+				  --client-config ${SKULLSUP_CONFIG}
+
+}
+
+stop() {
+    if [ ! -e ${SKULLSUP_PIDFILE} ]; then
+        echo 'No SkullsUp! Queue Reader is running (or a PID file went missing).' >&2
+        false
+    else
+        echo 'Stopping SkullsUp! Queue Reader....'
+        READER_PID=$(cat "${SKULLSUP_PID_FILE}" | sed -e 's/[^\d]//g')
+		rm -f ${SKULLSUP_PID_FILE}
+        kill "${READER_PID}"
+    fi
+}
+
+restart() {
+    stop
+    start
+}
+
+case "${1}" in
+    start)
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    restart)
+        stop
+        start
+        ;;
+
+    *)
+        echo "Usage: {start|stop|restart}" >&2
+        exit 1
+        ;;
+esac
+
+exit $?

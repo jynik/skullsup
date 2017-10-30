@@ -1,0 +1,12 @@
+*.sw[a-p]
+*~
+
+/conf
+
+/go/skullsup
+/go/skullsup-queue-reader
+/go/skullsup-queue-writer
+/go/skullsup-queue-server
+
+*.key
+*.pem

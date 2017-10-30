@@ -1,0 +1,8 @@
+Components are licensed as follows. The license text may be found in the
+corresponding components' subdirectories.
+
+* Go library and applications in the ./go directory:   MIT (https://spdx.org/licenses/MIT.html)
+* Yocto layer in the ./yocto/meta-skullsup directory:  MIT (https://spdx.org/licenses/MIT.html)
+* Firmware: GPL-3.0 (https://spdx.org/licenses/GPL-3.0.html)
+
+Spotted a licensing issue? Shoot me an email and I'll address as expediently as I can.

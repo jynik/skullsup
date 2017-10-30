@@ -1,0 +1,86 @@
+This README file contains information on the contents of the
+meta-skullsup layer.
+
+Please see the corresponding sections below for details.
+
+
+Dependencies
+============
+
+This layer depends on:
+
+  URI: git://git.yoctoproject.org/poky.git
+  layers: meta, meta-poky, meta-yocto-bsp
+  branch: rocko
+
+This layer has been tested using a Raspberry Pi, which has 
+the following dependencies:
+
+  URI: git://git.openembedded.org/meta-openembedded
+  layers: meta-oe, meta-multimedia, meta-networking, meta-python
+  branch: rocko
+
+  URI: https://github.com/agherzan/meta-raspberrypi.git
+  layers: meta-raspberrypi
+  branch: rocko
+
+Patches
+=======
+
+Please submit any patches against the meta-skullsup layer to:
+
+Maintainer: Jon Szymaniak <jon.szymaniak+skullsup@gmail.com>
+
+
+Table of Contents
+=================
+
+  I. Adding the meta-skullsup layer to your build
+ II. Building the skullsup-queue-reader-image
+
+I. Adding the meta-skullsup layer to your build
+=================================================
+
+In order to use this layer, you need to make the build system aware of
+it.
+
+Assuming the meta-skullsup layer exists at the top-level of your
+yocto build tree, you can add it to the build system by adding the
+location of the meta-skullsup layer to bblayers.conf, along with any
+other layers needed. e.g.:
+
+  BBLAYERS ?= " \
+    /path/to/yocto/meta \
+    /path/to/yocto/meta-poky \
+    /path/to/yocto/meta-yocto-bsp \
+    /path/to/skullsup/yocto/meta-skullsup \
+    "
+
+
+II. Building the skullsup-queue-reader-image
+=================================================
+
+Before you can build the skullsup-queue-reader-image, you must add
+a few items in your local.conf. These items will be used to fill in
+configuration file entries.
+
+SKULLSUP_REMOTE_HOST    The hostname or IP address of the skullsup-queue-server
+
+SKULLSUP_REMOTE_PORT    The port the skullsup-queue-server is listening on
+SKULLSUP_POLL_PERIOD    The number of seconds between dequeue attempts
+
+SKULLSUP_DIR            The base directory for skullsup configuration and log files.
+                        Use /opt/skullsup unless you have another preference.
+
+SKULLSUP_QUEUE_READER_CONFIG    The full path to the skullsup-queue-reader 
+                                configuration file that you want installed
+                                in the image.
+
+After filling the above items in, you should be able to run the following
+to create an image that you can boot on your platform.
+
+    bitbake skullsup-queue-reader-image
+
+This image is core-image-minimal with some additional scripts and software to
+launch the a skullsup-queue-reader at boot. Be sure to remove `debug-tweaks`
+from your EXTRA_IMAGE_FEATURES to remove passwordless root logins!
