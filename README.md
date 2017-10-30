@@ -10,7 +10,7 @@
                      ░  ░  ░      ░         ░  ░    ░  ░      ░     ░               ░
 </pre>
 
-*Videos go here*
+[![The Skull](https://www.dropbox.com/s/s33y501nyxj91fd/skull-link.jpg?raw=1)](https://youtu.be/DmYyMnP-sAg)
 
 # Overview #
 
@@ -24,7 +24,7 @@ or just let you know when the form of the [Destructor] has been chosen.
 
 [Destructor]: http://www.imdb.com/title/tt0087332/quotes
 
-## Stand Alone Mode ##
+https://youtu.be/DmYyMnP-sAg## Stand Alone Mode ##
 
 The setup can be operated in a stand-alone mode, with the :skull: connected
 directly to a host via USB. Run `skullsup --help` for a list of commands, and
@@ -82,6 +82,8 @@ your favorite embedded platform.
 The Skull consists of a [Crystal Head Vodka] glass containing 10 [NeoPixels]
 and clear plastic [vase filler]. The [firmware](./firmware) running on the
 [Digispark] presents USB Serial interface (via the DigiCDC library).
+
+![Entrails](https://www.dropbox.com/s/1fr6voigxz2nb77/skullsup-hw.jpg?raw=1)
 
 [Crystal Head Vodka]: https://www.crystalheadvodka.com
 [NeoPixels]: https://www.adafruit.com/product/1655
