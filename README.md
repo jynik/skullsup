@@ -49,8 +49,8 @@ been using.
 
 ### skullsup-queue-reader ###
 
-`skullsup-queue-reader` should be run on a host or platform connected a :skull:
-over USB. This we dequeue items from one or more queues managed by a
+`skullsup-queue-reader` should be run on a host or platform connected to a
+:skull: over USB. This we dequeue items from one or more queues managed by a
 `skullsup-queue-server` and display them on a device. This currently polls the
 server at a specified rate. (A WebSockets PR would be quite welcome.)
 
