@@ -8,14 +8,15 @@ fi
 
 LOGDIR_USER=$(stat -c '%U' "${SKULLSUP_LOG_DIR}")
 if [ "${LOGDIR_USER}" != "skullsup" ]; then
-	echo "Setting up ${SKULLSUP_LOG_DIR} ownership..."
-	chown skullsup ${SKULLSUP_LOG_DIR}
-	chmod -R o-rwx ${SKULLSUP_LOG_DIR}
+	echo "Setting up ${SKULLSUP_LOG_DIR} ownership"
+	chown skullsup "${SKULLSUP_LOG_DIR}"
+	chmod u+rwx "${SKULLSUP_LOG_DIR}"
+	chmod -R o-rwx "${SKULLSUP_LOG_DIR}"
 fi
 
-if [ -e ${SKULLSUP_PID_FILE} ]; then
-    echo 'A stale SkullsUp! PID file was found. Deleting it...'
-    rm -f ${SKULLSUP_PID_FILE}
+if [ -e "${SKULLSUP_PID_FILE}" ]; then
+    echo 'A stale SkullsUp! PID file was found. Deleting it.'
+    rm -f "${SKULLSUP_PID_FILE}"
 else
     echo 'No stale SkullsUp! PID file detected.'
 fi
