@@ -3,6 +3,7 @@ source /etc/init.d/skullsup-queue-reader-daemon.env
 
 if [ ! -d "${SKULLSUP_LOG_DIR}" ]; then
 	echo "Creating ${SKULLSUP_LOG_DIR}"
+	mkdir -p "${SKULLSUP_LOG_DIR}"
 fi
 
 LOGDIR_USER=$(stat -c '%U' "${SKULLSUP_LOG_DIR}")
