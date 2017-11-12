@@ -69,7 +69,6 @@ var (
 			Arg(c.ARG_FRAMESTR, c.ARG_FRAMESTR_DESC).
 			Required().
 			Strings()
-
 )
 
 func main() {

@@ -49,7 +49,6 @@ func (s *Server) errorResponse(w http.ResponseWriter, r *http.Request, errMsg st
 	http.Error(w, errMsg, errCode)
 }
 
-
 func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	var isWrite bool
 	var msg c.Message

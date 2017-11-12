@@ -25,10 +25,10 @@ const (
 	FLAG_HOST_DESC  = "Remote server running skullsup-queue-server"
 	FLAG_HOST_SHORT = 'r'
 
-	FLAG_PERIOD       = "period"
-	FLAG_PERIOD_DEV_DESC	 = "Frame update period in ms"
-	FLAG_PERIOD_CLIENT_DESC  = "Poll server for new data every <period> seconds"
-	FLAG_PERIOD_SHORT = 'P'
+	FLAG_PERIOD             = "period"
+	FLAG_PERIOD_DEV_DESC    = "Frame update period in ms"
+	FLAG_PERIOD_CLIENT_DESC = "Poll server for new data every <period> seconds"
+	FLAG_PERIOD_SHORT       = 'P'
 
 	FLAG_PORT       = "port"
 	FLAG_PORT_DESC  = "Queue server port number"
@@ -58,7 +58,7 @@ const (
 	FLAG_VERBOSE_DESC  = "Increase log vebosity"
 	FLAG_VERBOSE_SHORT = 'v'
 
-	FLAG_VERSION = "version"
+	FLAG_VERSION      = "version"
 	FLAG_VERSION_DESC = "Print SkullUp! version and exit"
 
 	FLAG_TLS_FOOTGUN      = "insecure"
@@ -96,7 +96,7 @@ const (
 		" the intra-frame delay to allow a subset of LEDs to be" +
 		" updated simultaneously."
 
-	CMD_VERSION = FLAG_VERSION
+	CMD_VERSION      = FLAG_VERSION
 	CMD_VERSION_DESC = FLAG_VERSION_DESC
 )
 

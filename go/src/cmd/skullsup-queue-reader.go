@@ -15,19 +15,16 @@ import (
 	"./common/logger"
 )
 
-var (
-)
-
 type reader struct {
-	httpClient  *client.Client
-	skull       string
-	skullInit	bool
-	log			*logger.Logger
+	httpClient *client.Client
+	skull      string
+	skullInit  bool
+	log        *logger.Logger
 
-	period      int64	// Sever polling period, in seconds. <= 0 implies no polling, run once.
-	logFilePath string	// Path to write log files, stdout, or stderr
-	quiet       bool	// Supress all log output
-	verbose		bool	// Enable verbose output
+	period      int64  // Sever polling period, in seconds. <= 0 implies no polling, run once.
+	logFilePath string // Path to write log files, stdout, or stderr
+	quiet       bool   // Supress all log output
+	verbose     bool   // Enable verbose output
 }
 
 func (r *reader) update() error {
@@ -56,7 +53,7 @@ func (r *reader) update() error {
 	}
 	defer skull.Close()
 
-	if ! r.skullInit {
+	if !r.skullInit {
 		err := skull.Reset()
 		if err != nil {
 			r.log.Printf("Failed to reset Skull: %s", err)

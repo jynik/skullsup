@@ -8,11 +8,11 @@ import (
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
+	"../skullsup"
 	c "./common"
 	"./common/defaults"
 	"./common/logger"
 	s "./server"
-	"../skullsup"
 )
 
 func printVersion(*kingpin.ParseContext) error {

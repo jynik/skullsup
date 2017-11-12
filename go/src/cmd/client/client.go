@@ -102,16 +102,16 @@ func (client *Client) addHeaders(r *http.Request, writer bool) error {
 }
 
 func responseError(r *http.Response) error {
-		if r.ContentLength >= 1 {
-			buf := make([]byte, r.ContentLength)
-			r.Body.Read(buf)
-			if len(buf) > 1 {
-				buf = buf[:len(buf) - 1] // Trim trailing newline
-			}
-			return fmt.Errorf("Status %d: %s", r.StatusCode, buf)
+	if r.ContentLength >= 1 {
+		buf := make([]byte, r.ContentLength)
+		r.Body.Read(buf)
+		if len(buf) > 1 {
+			buf = buf[:len(buf)-1] // Trim trailing newline
 		}
+		return fmt.Errorf("Status %d: %s", r.StatusCode, buf)
+	}
 
-		return fmt.Errorf("Status %d: <No extra data>", r.StatusCode)
+	return fmt.Errorf("Status %d: <No extra data>", r.StatusCode)
 }
 
 func (client *Client) WriteMessage(msg c.Message) (*http.Response, error) {
