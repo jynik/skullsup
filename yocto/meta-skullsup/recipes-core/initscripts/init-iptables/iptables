@@ -1,0 +1,26 @@
+#!/bin/sh
+
+start() {
+    iptables-restore < /etc/iptables.conf
+}
+
+stop() {
+	true
+}
+
+case "${1}" in
+    start)
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    *)
+        echo "Usage: {start|stop}" >&2
+        exit 1
+        ;;
+esac
+
+exit $?
