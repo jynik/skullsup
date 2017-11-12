@@ -5,10 +5,12 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -20,8 +22,6 @@ import (
 
 	"../../skullsup"
 )
-
-const DummyConfig = defaults.DUMMY_PREFIX + defaults.WRITER_CONFIG
 
 type Client struct {
 	Host       string // Queue Server hostname or IP
@@ -57,8 +57,16 @@ func printVersion(*kingpin.ParseContext) error {
 	return nil
 }
 
-func New() *Client {
+func New(reader bool) *Client {
 	var client Client
+
+	DummyConfig := defaults.DUMMY_PREFIX
+
+	if reader {
+		DummyConfig += defaults.READER_CONFIG
+	} else {
+		DummyConfig += defaults.WRITER_CONFIG
+	}
 
 	kingpin.Flag(c.FLAG_HOST, c.FLAG_HOST_DESC).
 		Short(c.FLAG_HOST_SHORT).
@@ -170,4 +178,21 @@ func (client *Client) ReadMessage() (c.Message, *http.Response, error) {
 
 	err = json.Unmarshal(buf, &msg)
 	return msg, resp, err
+}
+
+func (client *Client) ParseCmdline() (string, error) {
+	cmd := kingpin.Parse()
+
+	// Fixup the config path, if it contains our dummy location
+	if strings.Contains(client.ConfigPath, defaults.DUMMY_PREFIX) {
+		re := regexp.MustCompile("[^a-zA-Z0-9_]")
+		envvar := string(re.ReplaceAll([]byte(defaults.DUMMY_PREFIX), []byte{}))
+		if location, exists := os.LookupEnv(envvar); !exists {
+			return "", errors.New("No such environment variable: " + envvar)
+		} else {
+			client.ConfigPath = location + client.ConfigPath[len(defaults.DUMMY_PREFIX):]
+		}
+	}
+
+	return cmd, nil
 }

@@ -55,8 +55,12 @@ var (
 func main() {
 	var args []string
 
-	httpClient := client.New()
-	cmd := kingpin.Parse()
+	httpClient := client.New(false)
+	cmd, err := httpClient.ParseCmdline()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 
 	switch cmd {
 
@@ -77,7 +81,7 @@ func main() {
 	}
 
 	msg := c.Message{Command: cmd, Args: args, Period: strconv.Itoa(int(*period_ms))}
-	_, err := httpClient.WriteMessage(msg)
+	_, err = httpClient.WriteMessage(msg)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

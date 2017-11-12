@@ -82,7 +82,7 @@ func (r *reader) update() error {
 func handleCmdline(r *reader) {
 	var err error
 
-	r.httpClient = client.New()
+	r.httpClient = client.New(true)
 
 	kingpin.Flag(c.FLAG_PERIOD, c.FLAG_PERIOD_CLIENT_DESC).
 		Short(c.FLAG_PERIOD_SHORT).
@@ -106,7 +106,10 @@ func handleCmdline(r *reader) {
 		Short(c.FLAG_DEVICE_SHORT).
 		StringVar(&r.skull)
 
-	kingpin.Parse()
+	_, err = r.httpClient.ParseCmdline()
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	if !r.quiet {
 		r.log, err = logger.New(r.logFilePath, r.verbose)
