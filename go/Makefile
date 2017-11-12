@@ -1,7 +1,7 @@
 SKULLSUP_LIB_SRC := $(wildcard src/skullsup/*.go)
 SKULLSUP_CMD_SRC := $(wildcard src/cmd/common/*.go) \
+					$(wildcard src/cmd/common/defaults/*.go) \
 					$(wildcard src/cmd/client/*.go) \
-					$(wildcard src/cmd/defaults/*.go) \
 					$(wildcard src/cmd/server/*.go) \
 					$(wildcard src/cmd/*.go)
 
