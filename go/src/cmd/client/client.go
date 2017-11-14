@@ -5,12 +5,10 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -57,29 +55,41 @@ func printVersion(*kingpin.ParseContext) error {
 	return nil
 }
 
-func New(reader bool) *Client {
+func New(reader bool) (*Client, error) {
 	var client Client
 
-	DummyConfig := defaults.DUMMY_PREFIX
-
 	if reader {
-		DummyConfig += defaults.READER_CONFIG
+		client.ConfigPath = defaults.DUMMY_PREFIX + defaults.READER_CONFIG
 	} else {
-		DummyConfig += defaults.WRITER_CONFIG
+		client.ConfigPath = defaults.DUMMY_PREFIX + defaults.WRITER_CONFIG
 	}
+
+	// Expand the default configuration file path
+	if err := client.expandConfigPath(); err != nil {
+		return nil, err
+	}
+	defaultConfig := client.ConfigPath
+
+	// Populate default values from the remote host and port
+	// so these will be shown in the help text.
+	if err := client.loadRemoteHostDefaults(); err != nil {
+		return nil, err
+	}
+	defaultHost := client.Host
+	defaultPort := strconv.Itoa(int(client.Port))
 
 	kingpin.Flag(c.FLAG_HOST, c.FLAG_HOST_DESC).
 		Short(c.FLAG_HOST_SHORT).
-		Default(defaults.REMOTE).
+		Default(defaultHost).
 		StringVar(&client.Host)
 
 	kingpin.Flag(c.FLAG_PORT, c.FLAG_PORT_DESC).
 		Short(c.FLAG_PORT_SHORT).
-		Default(strconv.Itoa(defaults.PORT)).
+		Default(defaultPort).
 		Uint16Var(&client.Port)
 
 	kingpin.Flag(c.FLAG_CLIENT_CONFIG, c.FLAG_CLIENT_CONFIG_DESC).
-		Default(DummyConfig).
+		Default(defaultConfig).
 		Short(c.FLAG_CLIENT_CONFIG_SHORT).
 		StringVar(&client.ConfigPath)
 
@@ -94,11 +104,11 @@ func New(reader bool) *Client {
 		Action(printVersion).
 		Bool()
 
-	return &client
+	return &client, nil
 }
 
 func (client *Client) addHeaders(r *http.Request, writer bool) error {
-	info, err := loadClientInfo(client.ConfigPath, writer)
+	info, err := client.loadUserInfo(writer)
 	if err != nil {
 		return err
 	}
@@ -182,17 +192,6 @@ func (client *Client) ReadMessage() (c.Message, *http.Response, error) {
 
 func (client *Client) ParseCmdline() (string, error) {
 	cmd := kingpin.Parse()
-
-	// Fixup the config path, if it contains our dummy location
-	if strings.Contains(client.ConfigPath, defaults.DUMMY_PREFIX) {
-		re := regexp.MustCompile("[^a-zA-Z0-9_]")
-		envvar := string(re.ReplaceAll([]byte(defaults.DUMMY_PREFIX), []byte{}))
-		if location, exists := os.LookupEnv(envvar); !exists {
-			return "", errors.New("No such environment variable: " + envvar)
-		} else {
-			client.ConfigPath = location + client.ConfigPath[len(defaults.DUMMY_PREFIX):]
-		}
-	}
-
-	return cmd, nil
+	err := client.expandConfigPath()
+	return cmd, err
 }

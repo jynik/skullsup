@@ -54,9 +54,16 @@ var (
 
 func main() {
 	var args []string
+	var cmd string
+	var err error
 
-	httpClient := client.New(false)
-	cmd, err := httpClient.ParseCmdline()
+	httpClient, err := client.New(false)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	cmd, err = httpClient.ParseCmdline()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
