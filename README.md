@@ -2,7 +2,7 @@
 
 # Overview #
 
-This project provides device firmware and a couple command-line programs that
+This project provides device firmware and a few line programs that
 can be used to animate and illuminate a glass :skull:.
 
 Toss a `skullsup` invocation into your script of choice to signal a broken
@@ -40,6 +40,13 @@ TLS `¯\_(ツ)_/¯`). Credentials are stored in server-side configuration files
 as bcrypt hashes (cost=11). Eventually this will (might?) all be replaced with
 TLS client certificate-based authentication.
 
+### skullsup-queue-reader ###
+
+`skullsup-queue-reader` should be run on a host or platform connected to a
+:skull: over USB. This we dequeue items from one or more queues managed by a
+`skullsup-queue-server` and display them on a device. This currently polls the
+server at a specified rate. (A WebSockets PR would be quite welcome.)
+
 ### skullsup-queue-writer ###
 
 `skullsup-queue-writer` is HTTPS client that submits commands to a queue.
@@ -47,12 +54,14 @@ The usage of this is largely the same as `skullsup`; you simply just point
 it to the remote `skullsup-queue-server` use the same commands you've already
 been using.
 
-### skullsup-queue-reader ###
+### skullsup-queue-incantor ###
 
-`skullsup-queue-reader` should be run on a host or platform connected to a
-:skull: over USB. This we dequeue items from one or more queues managed by a
-`skullsup-queue-server` and display them on a device. This currently polls the
-server at a specified rate. (A WebSockets PR would be quite welcome.)
+`skullsup-queue-incantor` is a variant of `skullsup-queue-writer` that
+submits random incantations to a queue. This is intended to be used with a 
+`queue-writer.conf` is located in the default location, allowing this to
+be used when arguments cannot be passed to the program. (This is the case for
+some email clients that allow an application to be run as a notification
+or inbox rule action.)
 
 ## Build ##
 

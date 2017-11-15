@@ -3,6 +3,7 @@ package skullsup
 
 import (
 	"errors"
+	"strings"
 )
 
 func getFgBg(args []string, defaultFg, defaultBg string) (Color, Color, error) {
@@ -136,33 +137,62 @@ func vortex(args []string) ([]Frame, uint16, error) {
 	return frames, 40, nil
 }
 
-var psalms = []string{"aura", "hellivator", "pulse", "vortex"}
-
-func loadPsalm(name string, args []string) ([]Frame, uint16, error) {
-	var preset func(args []string) ([]Frame, uint16, error)
-
-	switch name {
-	case psalms[0]:
-		preset = aura
-
-	case psalms[1]:
-		preset = hellivator
-
-	case psalms[2]:
-		preset = pulse
-
-	case psalms[3]:
-		preset = vortex
-
-	default:
-		return []Frame{}, 0, errors.New("No such preset: " + name)
-	}
-
-	return preset(args)
+type Range struct {
+	Min, Max int
 }
 
-func Psalms() []string {
-	ret := make([]string, len(psalms))
-	copy(ret, psalms)
-	return ret
+type Psalm struct {
+	Name   string
+	Args   Range
+	Period Range
+	Luma   []Range // Luma range per argument
+	impl   func([]string) ([]Frame, uint16, error)
+}
+
+var psalms = []Psalm{
+	{
+		Name:   "aura",
+		Args:   Range{0, 0},
+		Period: Range{45, 100},
+		Luma:   []Range{},
+		impl:   aura,
+	},
+
+	{
+		Name:   "hellivator",
+		Args:   Range{0, 2},
+		Period: Range{65, 150},
+		Luma:   []Range{{128, 255}, {0, 32}},
+		impl:   hellivator,
+	},
+
+	{
+		Name:   "pulse",
+		Args:   Range{0, 1},
+		Period: Range{65, 150},
+		Luma:   []Range{{32, 255}},
+		impl:   pulse,
+	},
+
+	{
+		Name:   "vortex",
+		Args:   Range{0, 2},
+		Period: Range{65, 125},
+		Luma:   []Range{{128, 255}, {0, 64}},
+		impl:   vortex,
+	},
+}
+
+func loadPsalm(name string, args []string) ([]Frame, uint16, error) {
+	for _, psalm := range psalms {
+		if strings.ToLower(name) == psalm.Name {
+			return psalm.impl(args)
+		}
+	}
+
+	return []Frame{}, 0, errors.New("No such preset: " + name)
+}
+
+func Psalms() []Psalm {
+	return psalms
 }

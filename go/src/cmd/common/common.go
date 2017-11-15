@@ -165,10 +165,10 @@ func OpenDevice(device string) (*skullsup.Skull, error) {
 }
 
 func PrintPsalms() {
-	verses := skullsup.Psalms()
+	psalms := skullsup.Psalms()
 	fmt.Println("Mortals may beckon The Skull using these Unholy Psalms:")
-	for _, verse := range verses {
-		fmt.Println("    " + verse)
+	for _, psalm := range psalms {
+		fmt.Println("    " + psalm.Name)
 	}
 }
 
