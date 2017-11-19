@@ -63,6 +63,11 @@ be used when arguments cannot be passed to the program. (This is the case for
 some email clients that allow an application to be run as a notification
 or inbox rule action.)
 
+### skullsup-queue-randcolor ###
+
+`skullsup-queue-randcolor` is similar to `skullsup-queue-incantor`, except
+that it send submits random colors to the queue.
+
 ## Build ##
 
 For build instructions and dependencies, see the `README.md` in each of the

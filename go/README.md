@@ -2,7 +2,8 @@
 
 This directory contains the source code for the `skullsup` go library, as well
 as the `skullsup`, `skullsup-queue-server`, `skullsup-queue-reader`, and 
-`skullsup-queue-writer` programs.
+`skullsup-queue-writer`, `skullsup-queue-incantor`, and
+`skullsup-queue-randcolor` programs.
 
 # Build #
 

@@ -10,16 +10,21 @@ SKULLSUP_SERVER := src/cmd/skullsup-queue-server.go
 SKULLSUP_READER := src/cmd/skullsup-queue-reader.go
 SKULLSUP_WRITER := src/cmd/skullsup-queue-writer.go
 SKULLSUP_INCANTOR := src/cmd/skullsup-queue-incantor.go
+SKULLSUP_RANDCOLOR := src/cmd/skullsup-queue-randcolor.go
+
+COMMANDS := ${SKULLSUP} \
+			${SKULLSUP_SERVER} \
+			${SKULLSUP_READER} \
+			${SKULLSUP_WRITER} \
+			${SKULLSUP_INCANTOR} \
+			${SKULLSUP_RANDCOLOR}
+
+BINARIES := $(notdir $(COMMANDS:.go=))
 
 SKULLSUP_ALL := $(SKULLSUP_LIB_SRC) $(SKULLSUP_CMD_SRC) $(SKULLSUP) \
 				$(SKULLSUP_SERVER) $(SKULLSUP_WRITER)
 
-
-all: skullsup \
-	skullsup-queue-server \
-	skullsup-queue-reader \
-	skullsup-queue-writer \
-	skullsup-queue-incantor
+all: ${BINARIES}
 
 deps:
 	go get golang.org/x/crypto/bcrypt
@@ -44,7 +49,10 @@ skullsup-queue-writer: $(SKULLSUP_LIB_SRC) $(SKULLSUP_CMD_SRC) $(SKULLSUP_WRITER
 skullsup-queue-incantor: ${SKULLSUP_LIB_SRC} ${SKULLSUP_CMD_SRC} ${SKULLSUP_INCANTOR}
 	go build $(SKULLSUP_INCANTOR)
 
+skullsup-queue-randcolor: ${SKULLSUP_LIB_SRC} ${SKULLSUP_CMD_SRC} ${SKULLSUP_RANDCOLOR}
+	go build $(SKULLSUP_RANDCOLOR)
+
 clean:
-	rm -f skullsup skullsup-queue-server skullsup-queue-writer skullsup-queue-reader
+	rm -f ${BINARIES}
 
 .PHONY: doc format clean
