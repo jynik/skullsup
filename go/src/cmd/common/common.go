@@ -4,6 +4,7 @@ package common
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"time"
@@ -174,4 +175,49 @@ func PrintPsalms() {
 
 func EndpointURL(host string, port uint16) string {
 	return "https://" + host + ":" + strconv.Itoa(int(port)) + ENDPOINT
+}
+
+func RandomInt(min, max int) int {
+	return rand.Intn(max+1-min) + min
+}
+
+/* Generate random colors within the provided luma ranges.
+ *
+ * This uses a rough YUV -> RGB conversion so that we can try to keep the
+ * brightness associated with each argument within a desired range
+ * (and in a manner that's sensitive to our color perception).
+ */
+func RandomColors(lumas []skullsup.Range) []string {
+	colors := []string{}
+	for _, l := range lumas {
+		y := float32(RandomInt(l.Min, l.Max))
+		u := float32(rand.Intn(256))
+		v := float32(rand.Intn(256))
+
+		r := 1.164*(y-16) + 1.596*(v-128)
+		if r > 255 {
+			r = 255
+		} else if r < 0 {
+			r = 0
+		}
+
+		g := 1.164*(y-16) - 0.813*(v-128) - 0.391*(u-128)
+		if g > 255 {
+			g = 255
+		} else if g < 0 {
+			g = 0
+		}
+
+		b := 1.164*(y-16) + 2.018*(u-128)
+		if b > 255 {
+			b = 255
+		} else if b < 0 {
+			b = 0
+		}
+
+		colors = append(colors, fmt.Sprintf("%02x%02x%02x",
+			uint(r)&0xff, uint(g)&0xff, uint(b)&0xff))
+	}
+
+	return colors
 }
