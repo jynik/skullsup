@@ -169,7 +169,7 @@ var psalms = []Psalm{
 	{
 		Name:   "pulse",
 		Args:   Range{0, 1},
-		Period: Range{65, 150},
+		Period: Range{50, 85},
 		Luma:   []Range{{32, 255}},
 		impl:   pulse,
 	},
@@ -178,7 +178,7 @@ var psalms = []Psalm{
 		Name:   "vortex",
 		Args:   Range{0, 2},
 		Period: Range{65, 125},
-		Luma:   []Range{{128, 255}, {0, 64}},
+		Luma:   []Range{{64, 255}, {0, 64}},
 		impl:   vortex,
 	},
 }
