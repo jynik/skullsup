@@ -12,16 +12,16 @@ SRC_URI += "\
     file://src/skullsup/hexdump.go \
     file://src/skullsup/version.go \
     file://src/cmd/skullsup.go \
-    file://src/cmd/common/defaults/defaults_unix.go \
+    file://src/cmd/common/defaults/defaults_linux.go \
     file://src/cmd/common/defaults/defaults.go \
     file://src/cmd/common/defaults/defaults_windows.go \
     file://src/cmd/common/common_windows.go \
     file://src/cmd/common/common.go \
-    file://src/cmd/common/common_unix.go \
+    file://src/cmd/common/common_linux.go \
     file://src/cmd/common/logger/logger.go \
     file://src/cmd/skullsup-queue-server.go \
     file://src/cmd/client/client.go \
-    file://src/cmd/client/auth.go \
+    file://src/cmd/client/config.go \
     file://src/cmd/server/auth.go \
     file://src/cmd/server/server.go \
     file://src/cmd/server/messagequeue.go \
