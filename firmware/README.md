@@ -19,7 +19,7 @@ reduce the size of the library in order to recover sufficient codespace.
 # Build #
 
 ~~~
-make
+make PLATFORM=skull
 make prog
 ~~~
 

@@ -52,7 +52,7 @@ static const uint8_t wake_cmd[CMD_BUF_LEN] = {
 
 static void neopixel_set_all(uint8_t r, uint8_t g, uint8_t b, bool show)
 {
-    for (unsigned int i = 0; i < 10; i++) {
+    for (unsigned int i = 0; i < LED_COUNT; i++) {
         leds.setPixelColor(i, r, g, b);
     }
 

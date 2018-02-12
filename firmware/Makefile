@@ -4,6 +4,10 @@ ifeq ($(ARDUINO_DIR),)
 	ARDUINO_DIR := $(HOME)/.arduino15
 endif
 
+ifeq ($(PLATFORM),)
+	PLATFORM := skull
+endif
+
 # Commands
 AS			:= avr-gcc -x assembler-with-cpp
 CC			:= avr-gcc
@@ -18,7 +22,7 @@ ARCHDEFS	:= -mmcu=attiny85
 CPUDEFS		:= $(ARCHDEFS) -DF_CPU=16500000L -DARDUINO=10803 -DARDUINO_AVR_DIGISPARK -DARDUINO_ARCH_AVR
 
 ASFLAGS		:= -g $(CPUDEFS)
-CFLAGS		:= -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -MMD $(CPUDEFS) -Wall -Wextra
+CFLAGS		:= -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -MMD $(CPUDEFS) -Wall -Wextra -DPLATFORM_$(PLATFORM)
 CXXFLAGS	:= $(CFLAGS)
 LDFLAGS		:= $(ARCHDEFS) -Os -Wl,-gc-sections
 HEXFLAGS	:= -O ihex -R .eeprom
@@ -28,6 +32,7 @@ SIZEFLAGS	:= --format=avr --mcu=attiny85
 TARGET 		:= skullsup
 TARGET_ELF	:= $(TARGET).elf
 TARGET_HEX  := $(TARGET).hex
+TARGET_SYM 	:= $(TARGET)-$(PLATFORM).hex
 TARGETS		:= $(TARGET_ELF) $(TARGET_HEX)
 
 # Directories
@@ -95,11 +100,27 @@ CORE_OBJ := \
 		$(notdir $(CORE_C_SRC:.c=.o) \
 		$(notdir $(CORE_CPP_SRC:.cpp=.o))))
 
-
 CORE_INC := -I$(DIGISTUMP_DIR)/cores/tiny 			\
 			-I$(DIGISTUMP_DIR)/variants/digispark 	\
 
 all: $(TARGET_HEX) size
+
+help:
+	@echo "Usage: make PLATFORM=<platform> [clean]"
+	@echo ""
+	@echo "Available platforms: "
+	@echo "  skull"
+	@echo ""
+
+platform-check:
+	@if [ -z "$(PLATFORM)" ]; then \
+		echo "No PLATFORM was specified. Options are" >&2 ; \
+		echo " skull" >&2 ; \
+		echo "" >&2 ; \
+		echo "Example: make PLATFORM=skull" >&2 ; \
+		echo "" >&2 ; \
+		exit 1; \
+	fi
 
 size: $(TARGET_ELF)
 	@echo -e '\n'
@@ -108,8 +129,16 @@ size: $(TARGET_ELF)
 install: $(TARGET_HEX)
 	$(LAUNCHER_DIR)/launcher -cdigispark --timeout 30 -Uflash:w:$<:i
 
+$(TARGET_SYM): $(TARGET_HEX)
+	@ln -s $(TARGET_HEX) $@
 
-$(TARGET_HEX): $(TARGET_ELF)
+
+build-msg:
+	@echo ---------------------------------------------------------------------
+	@echo   Building for PLATFORM=$(PLATFORM)
+	@echo ---------------------------------------------------------------------
+
+$(TARGET_HEX): build-msg $(TARGET_ELF)
 	$(OBJCOPY) $(HEXFLAGS) $< $@
 
 $(TARGET_ELF): $(OBJ) $(DIGICDC_OBJ) $(CORE_OBJ)
@@ -120,7 +149,7 @@ $(OBJDIR_LIST):
 
 # Application code
 $(SKULLSUP_OBJDIR)/%.o: src/%.cpp $(SKULLSUP_OBJDIR)
-	$(CXX) $(CXXFLAGS) -DFIXED_PIXEL_COUNT=10 $(INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
 
 # Digspark CDC library
 $(DIGICDC_OBJDIR)/%.o: $(DIGICDC_SRCDIR)/%.S $(DIGICDC_OBJDIR)
@@ -140,7 +169,7 @@ $(CORE_OBJDIR)/%.o: $(CORE_SRCDIR)/%.cpp $(CORE_OBJDIR)
 	$(CXX) $(CXXFLAGS) $(CORE_INC) -c $< -o $@
 
 clean:
-	rm -f $(TARGET_ELF) $(TARGET_HEX)
+	rm -f *.elf *.hex
 	rm -rf $(OBJDIR)
 
-.PHONY: clean
+.PHONY: build-msg help clean

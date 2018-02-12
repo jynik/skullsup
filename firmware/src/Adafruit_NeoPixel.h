@@ -19,6 +19,8 @@
 #ifndef ADAFRUIT_NEOPIXEL_H
 #define ADAFRUIT_NEOPIXEL_H
 
+#include "hw_cfg.h"
+
 #if (ARDUINO >= 100)
  #include <Arduino.h>
 #else
