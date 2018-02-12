@@ -4,17 +4,22 @@ ifeq ($(ARDUINO_DIR),)
 	ARDUINO_DIR := $(HOME)/.arduino15
 endif
 
+AVRGCC_VERSION := 4.8.1-arduino5
+AVRGCC_DIR := $(ARDUINO_DIR)/packages/arduino/tools/avr-gcc/$(AVRGCC_VERSION)
+
+CROSS_COMPILE := $(AVRGCC_DIR)/bin/avr-
+
 ifeq ($(PLATFORM),)
 	PLATFORM := skull
 endif
 
 # Commands
-AS			:= avr-gcc -x assembler-with-cpp
-CC			:= avr-gcc
-CXX			:= avr-g++
-LD			:= avr-gcc
-OBJCOPY		:= avr-objcopy
-SIZE		:= avr-size
+AS			:= $(CROSS_COMPILE)gcc -x assembler-with-cpp
+CC			:= $(CROSS_COMPILE)gcc
+CXX			:= $(CROSS_COMPILE)g++
+LD			:= $(CROSS_COMPILE)gcc
+OBJCOPY		:= $(CROSS_COMPILE)objcopy
+SIZE		:= $(CROSS_COMPILE)size
 MKDIR		:= mkdir -p
 
 # Compiler flags
@@ -30,9 +35,8 @@ SIZEFLAGS	:= --format=avr --mcu=attiny85
 
 # Build artifacts
 TARGET 		:= skullsup
-TARGET_ELF	:= $(TARGET).elf
-TARGET_HEX  := $(TARGET).hex
-TARGET_SYM 	:= $(TARGET)-$(PLATFORM).hex
+TARGET_ELF	:= $(TARGET)-$(PLATFORM).elf
+TARGET_HEX  := $(TARGET)-$(PLATFORM).hex
 TARGETS		:= $(TARGET_ELF) $(TARGET_HEX)
 
 # Directories
@@ -139,7 +143,7 @@ build-msg:
 	@echo ---------------------------------------------------------------------
 
 $(TARGET_HEX): build-msg $(TARGET_ELF)
-	$(OBJCOPY) $(HEXFLAGS) $< $@
+	$(OBJCOPY) $(HEXFLAGS) $(TARGET_ELF) $@
 
 $(TARGET_ELF): $(OBJ) $(DIGICDC_OBJ) $(CORE_OBJ)
 	$(LD) $(LDFLAGS) $^ -o $@
