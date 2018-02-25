@@ -116,16 +116,6 @@ help:
 	@echo "  skull"
 	@echo ""
 
-platform-check:
-	@if [ -z "$(PLATFORM)" ]; then \
-		echo "No PLATFORM was specified. Options are" >&2 ; \
-		echo " skull" >&2 ; \
-		echo "" >&2 ; \
-		echo "Example: make PLATFORM=skull" >&2 ; \
-		echo "" >&2 ; \
-		exit 1; \
-	fi
-
 size: $(TARGET_ELF)
 	@echo -e '\n'
 	$(SIZE) $(SIZEFLAGS) $<
@@ -176,4 +166,4 @@ clean:
 	rm -f *.elf *.hex
 	rm -rf $(OBJDIR)
 
-.PHONY: build-msg help clean
+.PHONY: build-msg size help clean

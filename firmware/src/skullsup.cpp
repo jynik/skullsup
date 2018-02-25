@@ -22,7 +22,6 @@ static enum {
     STATE_REANIMATED,
 } state;
 
-#define MAX_FRAMES 44
 static struct frame {
   uint8_t   led_id;
   uint8_t   r;
