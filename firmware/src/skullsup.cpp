@@ -3,15 +3,24 @@
 #include <DigiCDC.h>
 #include "Adafruit_NeoPixel.h"
 #include "hw_cfg.h"
+#include "version.h"
 
 #define CMD_WAKE        0xff    // Bring device out of initial state
 #define CMD_RESET       0xfe    // Clear frame buffer, and set fixed color
-#define CMD_REANIMATE   0xfd	// Begin displaying frames
-#define CMD_SET_COLOR   0xfc	// Reset and display a fixed color
-								// fb - 0x81 are reserved for future commands
+#define CMD_REANIMATE   0xfd    // Begin displaying frames
+#define CMD_SET_COLOR   0xfc    // Reset and display a fixed color
+#define CMD_FW_VERSION  0xfb    // Retrieve firmware version
+#define CMD_NUM_STRIPS  0xfa    // Retrieve # of LED strips
+#define CMD_STRIP_LEN   0xf9    // Retrieve # of LEDs per strip
+#define CMD_LAYOUT      0xf8    // Retrieve physical LED layout
+#define CMD_MAX_FRAMES  0xf7    // Retrieve MAX_FRAMES value
+
+//  0xf6 - 0x80 are reserved for future commands
+#define CMD_RESV_END    0xf6
+#define CMD_RESV_START  0x80
 
 // Do not include a frame delay, just update LEDs. OR this with LED "ID"
-#define NO_FRAME_DELAY	0x40
+#define NO_FRAME_DELAY  0x40
 
 // Addresses all LEDs when loading a frame. 0x3e - 0x00 address single LEDs
 #define ALL_LEDS        0x3f
@@ -40,6 +49,10 @@ static uint16_t frame_dur_ms;       // frame duration in ms
 static uint8_t cmd_idx = 0;         // Current index into command buffer
 static uint8_t cmd_buf[CMD_BUF_LEN];   // Command buffer
 
+#define RESP_BUF_LEN 4
+static uint8_t resp_buf[RESP_BUF_LEN];
+
+
 // Handle to LED strip
 static Adafruit_NeoPixel leds =
     Adafruit_NeoPixel(LED_COUNT, LED_PIN, NEO_GRB | NEO_KHZ800);
@@ -62,7 +75,7 @@ static void neopixel_set_all(uint8_t r, uint8_t g, uint8_t b, bool show)
     }
 }
 
-static inline void ack_byte(uint8_t c) {
+inline void ack_byte(uint8_t c) {
     SerialUSB.write(~c);
 }
 
@@ -134,10 +147,13 @@ static inline void show_frame(const struct frame *f)
 void loop()
 {
     char c;
+    uint8_t resp_len = 0;
+
     while (SerialUSB.available()) {
         c = SerialUSB.read();
         cmd_buf[cmd_idx++] = c;
         if (cmd_idx >= CMD_BUF_LEN) {
+
             switch (cmd_buf[0]) {
                 case CMD_WAKE:
                     break;
@@ -157,15 +173,44 @@ void loop()
                     frame_dur_ms = ((uint16_t) cmd_buf[1] << 8) | cmd_buf[2];
                     break;
 
+                // Send FW Version in little-endian byte order
+                case CMD_FW_VERSION:
+                    resp_buf[0] = FW_VERSION & 0xff;
+                    resp_buf[1] = FW_VERSION >> 8;
+                    resp_len = 2;
+                    break;
+
+                case CMD_NUM_STRIPS:
+                    resp_buf[0] = NUM_STRIPS;
+                    resp_len = 1;
+                    break;
+
+                case CMD_STRIP_LEN:
+                    resp_buf[0] = LEDS_PER_STRIP;
+                    resp_len = 1;
+                    break;
+
+				case CMD_LAYOUT:
+					resp_buf[0] = LED_LAYOUT;
+					resp_len = 1;
+					break;
+
+                case CMD_MAX_FRAMES:
+                    resp_buf[0] = MAX_FRAMES;
+                    resp_len = 1;
+                    break;
+
                 // Load Frame. The cmd nibble specifies the LED(s) to target
                 default:
-                    state = STATE_IDLE;
-                    if (frame_count < MAX_FRAMES) {
-                        frames[frame_count].led_id  = cmd_buf[0];
-                        frames[frame_count].r       = cmd_buf[1];
-                        frames[frame_count].g       = cmd_buf[2];
-                        frames[frame_count].b       = cmd_buf[3];
-                        frame_count++;
+                    if (cmd_buf[0] < CMD_RESV_START) {
+                        state = STATE_IDLE;
+                        if (frame_count < MAX_FRAMES) {
+                            frames[frame_count].led_id  = cmd_buf[0];
+                            frames[frame_count].r       = cmd_buf[1];
+                            frames[frame_count].g       = cmd_buf[2];
+                            frames[frame_count].b       = cmd_buf[3];
+                            frame_count++;
+                        }
                     }
             }
 
@@ -173,6 +218,10 @@ void loop()
         }
 
         ack_byte(c);
+        if (resp_len != 0) {
+            SerialUSB.write(resp_buf, resp_len);
+            resp_len = 0;
+        }
     }
 
     if (state == STATE_REANIMATED) {
