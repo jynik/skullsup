@@ -37,7 +37,7 @@ func mustGetFgBg(args []string, defaultFg, defaultBg string) (Color, Color) {
 	}
 }
 
-func aura(args []string) ([]Frame, uint16, error) {
+func aura(args []string, xform []uint8) ([]Frame, uint16, error) {
 	var frames []Frame
 
 	var colors = [...]string{
@@ -56,14 +56,14 @@ func aura(args []string) ([]Frame, uint16, error) {
 	for _, c := range colors {
 		fg := MustGetNewColor(c)
 		frames = append(frames, NewFrameLed(ALL_LEDS, bg, false))
-		frames = append(frames, NewFrameLed(4, fg, false))
-		frames = append(frames, NewFrameLed(5, fg, true))
+		frames = append(frames, NewFrameLed(xform[len(xform)/2-1], fg, false))
+		frames = append(frames, NewFrameLed(xform[len(xform)/2], fg, true))
 	}
 
 	return frames, 85, nil
 }
 
-func pulse(args []string) ([]Frame, uint16, error) {
+func pulse(args []string, xform []uint8) ([]Frame, uint16, error) {
 	var color Color
 	var frames []Frame
 	var err error
@@ -91,47 +91,45 @@ func pulse(args []string) ([]Frame, uint16, error) {
 	return frames, 85, nil
 }
 
-func hellivator(args []string) ([]Frame, uint16, error) {
+func hellivator(args []string, xform []uint8) ([]Frame, uint16, error) {
 	var frames []Frame
-	var i uint8
 
 	fg, bg, err := getFgBg(args, "008000", "000030")
 	if err != nil {
 		return []Frame{}, 0, err
 	}
 
-	for i = 0; i < 10; i += 2 {
+	for i := 0; i < len(xform); i += 2 {
 		frames = append(frames, NewFrameLed(ALL_LEDS, bg, false))
-		frames = append(frames, NewFrameLed(i, fg, false))
-		frames = append(frames, NewFrameLed(i+1, fg, true))
+		frames = append(frames, NewFrameLed(xform[i], fg, false))
+		frames = append(frames, NewFrameLed(xform[i+1], fg, true))
 	}
 
-	for i = 7; i > 2; i -= 2 {
+	for i := len(xform) - 3; i > 2; i -= 2 {
 		frames = append(frames, NewFrameLed(ALL_LEDS, bg, false))
-		frames = append(frames, NewFrameLed(i, fg, false))
-		frames = append(frames, NewFrameLed(i-1, fg, true))
+		frames = append(frames, NewFrameLed(xform[i], fg, false))
+		frames = append(frames, NewFrameLed(xform[i-1], fg, true))
 	}
 
 	return frames, 85, nil
 }
 
-func vortex(args []string) ([]Frame, uint16, error) {
+func vortex(args []string, xform []uint8) ([]Frame, uint16, error) {
 	var frames []Frame
-	var i uint8
 
 	fg, bg, err := getFgBg(args, "ff0000", "000505")
 	if err != nil {
 		return []Frame{}, 0, err
 	}
 
-	for i = 0; i < 10; i += 2 {
+	for i := 0; i < len(xform); i += 2 {
 		frames = append(frames, NewFrameLed(ALL_LEDS, bg, false))
-		frames = append(frames, NewFrameLed(i, fg, true))
+		frames = append(frames, NewFrameLed(xform[i], fg, true))
 	}
 
-	for i = 9; i > 1; i -= 2 {
+	for i := len(xform) - 1; i > 1; i -= 2 {
 		frames = append(frames, NewFrameLed(ALL_LEDS, bg, false))
-		frames = append(frames, NewFrameLed(i, fg, true))
+		frames = append(frames, NewFrameLed(xform[i], fg, true))
 	}
 
 	return frames, 40, nil
@@ -146,7 +144,7 @@ type Psalm struct {
 	Args   Range
 	Period Range
 	Luma   []Range // Luma range per argument
-	impl   func([]string) ([]Frame, uint16, error)
+	impl   func([]string, []uint8) ([]Frame, uint16, error)
 }
 
 var psalms = []Psalm{
@@ -183,10 +181,10 @@ var psalms = []Psalm{
 	},
 }
 
-func loadPsalm(name string, args []string) ([]Frame, uint16, error) {
+func (s *Skull) getPsalm(name string, args []string) ([]Frame, uint16, error) {
 	for _, psalm := range psalms {
 		if strings.ToLower(name) == psalm.Name {
-			return psalm.impl(args)
+			return psalm.impl(args, s.plat.ledXform)
 		}
 	}
 

@@ -18,6 +18,18 @@ func openHexDumper(filename string) (*hexDumper, error) {
 	return d, nil
 }
 
+func (h *hexDumper) info() (uint, fwVersion) {
+	return SIM, fwVersion{0, 1, 0}
+}
+
+func (h *hexDumper) read(n uint) ([]byte, error) {
+	buf := make([]byte, n)
+	for i := uint(0); i < n; i++ {
+		buf[i] = 0xff
+	}
+	return buf, nil
+}
+
 func (hex *hexDumper) write(payload []byte) error {
 	hex.dump.Write(payload)
 	fmt.Println()

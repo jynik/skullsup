@@ -33,6 +33,22 @@ func openUartDevice(name string) (*uartDevice, error) {
 	return d, nil
 }
 
+func (d *uartDevice) read(n uint) ([]byte, error) {
+	var buf []byte = make([]byte, 1)
+	var ret []byte
+
+	// Multi-byte payloads are thrown at a us a byte at a time.
+	// Just perform multiple reads for simplicity.
+	for i := uint(0); i < n; i++ {
+		if _, err := d.port.Read(buf); err != nil {
+			return []byte{}, err
+		}
+		ret = append(ret, buf[0])
+	}
+
+	return ret, nil
+}
+
 func (d *uartDevice) write(payload []byte) error {
 	var ack_exp byte
 	var ack = make([]byte, 1)
