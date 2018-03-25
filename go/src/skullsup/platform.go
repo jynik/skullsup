@@ -60,8 +60,6 @@ func (s *Skull) loadPlatformInfo() error {
 		s.plat.fw.major = uint(packed >> 11)
 		s.plat.fw.minor = uint((packed >> 6) & 0x1f)
 		s.plat.fw.patch = uint(packed & 0x2f)
-
-		fmt.Printf("FW version: %d.%d.%d\n", s.plat.fw.major, s.plat.fw.minor, s.plat.fw.patch)
 	}
 
 	cmd[0] = cmd_max_frames
@@ -75,8 +73,6 @@ func (s *Skull) loadPlatformInfo() error {
 		s.plat.maxFrames = uint(buf[0])
 	}
 
-	fmt.Printf("Max frames: %d\n", s.plat.maxFrames)
-
 	cmd[0] = cmd_strip_count
 	if err := s.dev.write(cmd); err != nil {
 		return err
@@ -87,8 +83,6 @@ func (s *Skull) loadPlatformInfo() error {
 	} else {
 		s.plat.numStrips = uint(buf[0])
 	}
-
-	fmt.Printf("# LED Strips: %d\n", s.plat.numStrips)
 
 	cmd[0] = cmd_strip_len
 	if err := s.dev.write(cmd); err != nil {
@@ -101,11 +95,7 @@ func (s *Skull) loadPlatformInfo() error {
 		s.plat.stripLen = uint(buf[0])
 	}
 
-	fmt.Printf("LED strip length: %d\n", s.plat.stripLen)
-
 	s.plat.ledCount = s.plat.numStrips * s.plat.stripLen
-
-	fmt.Printf("Total LED count: %d\n", s.plat.ledCount)
 
 	cmd[0] = cmd_layout
 	if err := s.dev.write(cmd); err != nil {
@@ -117,8 +107,6 @@ func (s *Skull) loadPlatformInfo() error {
 	} else {
 		s.plat.layout = uint(buf[0])
 	}
-
-	fmt.Printf("LED Layout: 0x%08x\n", s.plat.layout)
 
 	switch s.plat.layout {
 	case (LAYOUT_ALTERNATING | LAYOUT_WRAP_NORMAL):
