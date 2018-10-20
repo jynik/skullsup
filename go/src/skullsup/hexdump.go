@@ -30,10 +30,10 @@ func (h *hexDumper) read(n uint) ([]byte, error) {
 	return buf, nil
 }
 
-func (hex *hexDumper) write(payload []byte) error {
+func (hex *hexDumper) write(payload []byte, _ bool) (byte, error) {
 	hex.dump.Write(payload)
 	fmt.Println()
-	return nil
+	return checksum(payload), nil
 }
 
 func (h *hexDumper) close() error {

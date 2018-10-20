@@ -139,20 +139,19 @@ func IsValidQueueName(s string) bool {
 	return uuidRegexp.MatchString(s)
 }
 
-// The DigiSpark takes a while to become ready. Retry if it's busy.
 func OpenDevice(device string) (*skullsup.Skull, error) {
 	var skull *skullsup.Skull
 	var err error
 
 	retry := true
-	max := 10
+	max := 3
 	for i := 0; i < max && retry; i++ {
 		skull, err = skullsup.New(device)
 		if err != nil {
-			if err.Error() == skullsup.NOT_READY {
+			if err.Error() == skullsup.ErrorNotReady {
 				if i < (max - 1) {
 					fmt.Printf("%s. Retrying %d more time(s)...\n", err, max-i-1)
-					time.Sleep(5 * time.Second)
+					time.Sleep(1 * time.Second)
 				}
 			} else {
 				return nil, err

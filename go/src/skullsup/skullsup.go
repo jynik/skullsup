@@ -3,12 +3,16 @@
 // associated data types.
 package skullsup
 
-import "strings"
+import (
+	"errors"
+	"strings"
+	"time"
+)
 
 // Device abstraction interface.
 type device interface {
 	read(n uint) ([]byte, error)
-	write(b []byte) error
+	write(b []byte, check_ack bool) (byte, error)
 	close() error
 }
 
@@ -26,7 +30,9 @@ type Skull struct {
 }
 
 const (
-	cmd_wake        = 0xff // Wake command after power-up
+	cmd_summon      = 0xff // Summon the device to accept commands
+						   // This is required when the device is sleeping
+						   // or if it's currently reanimated.
 	cmd_reset       = 0xfe // Clear frames and set to specified color
 	cmd_reanimate   = 0xfd // Start (re)animation
 	cmd_set_color   = 0xfc // Reset and set fixed color
@@ -42,9 +48,27 @@ const (
 
 	// Addresses all LEDs when loading a frame. 0x3e - 0x00 address single LEDs
 	ALL_LEDS = 0x3f
-
-	NOT_READY = "The Dark Revenant is busy sowing seeds of chaos"
 )
+
+// Error messages
+const (
+
+	// Used to indicate device is not ready to accept commands
+	ErrorNotReady = "The Dark Revenant is busy sowing seeds of chaos. Be patient."
+
+	// Command timed out
+	ErrorTimeout = "Our cries have gone unanswered and we've given up."
+)
+
+
+// Return a checksum for a payload sent to a device
+func checksum(payload []byte) byte {
+	ret := byte(0)
+	for _, b := range payload {
+		ret += b
+	}
+	return ret
+}
 
 func New(name string) (*Skull, error) {
 	var err error
@@ -61,8 +85,10 @@ func New(name string) (*Skull, error) {
 		return nil, err
 	}
 
-	// Wake the device up, if it's not alive already...
-	if err = s.Wake(); err != nil {
+	if err = s.summon(); err != nil {
+		if strings.Contains(err.Error(), "EOF") {
+			err = errors.New(ErrorTimeout)
+		}
 		return nil, err
 	}
 
@@ -78,16 +104,32 @@ func Version() string {
 	return version
 }
 
-func (s *Skull) Wake() error {
-	return s.dev.write([]byte{cmd_wake, '1', '3', '8'})
+// Ensure the device is ready to accept commands by sending the summon command
+// and ensuring that we've gotten a valid ACK.
+func (s *Skull) summon() error {
+	var err error
+	const maxRetries = 10
+
+	for i := 0; i < 10; i++ {
+		_, err = s.dev.write([]byte{cmd_summon, '1', '3', '8'}, true)
+		if err == nil {
+			return nil
+		}
+
+		time.Sleep(250 * time.Microsecond)
+	}
+
+	return err
 }
 
 func (s *Skull) Reset() error {
-	return s.dev.write([]byte{cmd_reset, 0x00, 0x00, 0x00})
+	_, err := s.dev.write([]byte{cmd_reset, 0x00, 0x00, 0x00}, true)
+	return err
 }
 
 func (s *Skull) setColor(c Color) error {
-	return s.dev.write([]byte{cmd_set_color, c.red, c.green, c.blue})
+	_, err  := s.dev.write([]byte{cmd_set_color, c.red, c.green, c.blue}, true)
+	return err
 }
 
 func (s *Skull) SetColor(colorStr string) error {
@@ -104,7 +146,8 @@ func (s *Skull) loadFrame(f Frame) error {
 	if !f.delay {
 		cmd |= no_frame_delay
 	}
-	return s.dev.write([]byte{cmd, f.color.red, f.color.green, f.color.blue})
+	_, err := s.dev.write([]byte{cmd, f.color.red, f.color.green, f.color.blue}, true)
+	return err
 }
 
 func (s *Skull) loadFrames(frames []Frame) error {
@@ -119,7 +162,8 @@ func (s *Skull) loadFrames(frames []Frame) error {
 func (s *Skull) reanimate(period uint16) error {
 	var per_msb uint8 = uint8(period >> 8)
 	var per_lsb uint8 = uint8(period & 0xff)
-	return s.dev.write([]byte{cmd_reanimate, per_msb, per_lsb, 0x00})
+	_, err :=  s.dev.write([]byte{cmd_reanimate, per_msb, per_lsb, 0x00}, true)
+	return err
 }
 
 // User input may contain empty (whitespace) strings - drop them

@@ -2,6 +2,7 @@
 package skullsup
 
 import (
+	//"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -15,17 +16,18 @@ type uartDevice struct {
 	port *serial.Port
 }
 
-const ack_timeout_s = 2500
+const baudrate = 9600
+const ack_timeout_ms = 500
 
 func openUartDevice(name string) (*uartDevice, error) {
 	var err error
 	d := new(uartDevice)
 	d.name = name
 
-	c := &serial.Config{Name: d.name, Baud: 115200, ReadTimeout: time.Millisecond * ack_timeout_s}
+	c := &serial.Config{Name: d.name, Baud: baudrate, ReadTimeout: time.Millisecond * ack_timeout_ms}
 	if d.port, err = serial.OpenPort(c); err != nil {
 		if strings.Contains(err.Error(), "device or resource busy") {
-			return nil, errors.New(NOT_READY)
+			return nil, errors.New(ErrorNotReady)
 		}
 		return nil, err
 	}
@@ -34,47 +36,32 @@ func openUartDevice(name string) (*uartDevice, error) {
 }
 
 func (d *uartDevice) read(n uint) ([]byte, error) {
-	var buf []byte = make([]byte, 1)
-	var ret []byte
-
-	// Multi-byte payloads are thrown at a us a byte at a time.
-	// Just perform multiple reads for simplicity.
-	for i := uint(0); i < n; i++ {
-		if _, err := d.port.Read(buf); err != nil {
-			return []byte{}, err
-		}
-		ret = append(ret, buf[0])
-	}
-
-	return ret, nil
+	var buf []byte = make([]byte, n)
+	_, err := d.port.Read(buf)
+	//fmt.Printf("Read %s\n", hex.Dump(buf))
+	return buf, err
 }
 
-func (d *uartDevice) write(payload []byte) error {
-	var ack_exp byte
-	var ack = make([]byte, 1)
-	var err error
-	var n int
-
-	for _, b := range payload {
-		if _, err = d.port.Write([]byte{b}); err != nil {
-			return err
-		}
-
-		// The DigiCDC implementation can't handle data thrown
-		// at it too quickly. Wait for an ACK before continuing
-		if n, err = d.port.Read(ack); err != nil {
-			return fmt.Errorf("Did not receive ACK for [%02x]", b)
-		}
-
-		ack_exp = ^b
-
-		if n != 1 {
-			return fmt.Errorf("Expect 1-byte ACK, got %d bytes", n)
-		} else if ack[0] != ack_exp {
-			return fmt.Errorf("Expected ACK=%02x, got %02x", ack_exp, ack)
-		}
+func (d *uartDevice) write(payload []byte, check_ack bool) (byte, error) {
+	if _, err := d.port.Write(payload); err != nil {
+		return 0, err
+	} else if !check_ack {
+		return 0, nil
 	}
-	return nil
+
+	ack_exp := checksum(payload)
+	//fmt.Printf("Sent <%02x> %s", ack_exp, hex.Dump(payload))
+
+	ack, err := d.read(1)
+	if err != nil {
+		return 0, err
+	}
+
+	if ack[0] != ack_exp {
+		return ack[0], fmt.Errorf("Expected ACK = 0x%02x. Got 0x%02x.", ack_exp, ack)
+	}
+
+	return ack[0], nil
 }
 
 func (d *uartDevice) close() error {
