@@ -11,22 +11,21 @@
 #define LAYOUT_WRAP_NORMAL  (1 << 0)
 #define LAYOUT_WRAP_INVERT  (1 << 1)
 
-#if defined(PLATFORM_skull)
-#   define LEDS_PER_STRIP   10
-#   define NUM_STRIPS       1
-#   define LED_LAYOUT       (LAYOUT_ALTERNATING | LAYOUT_WRAP_NORMAL)
-#   define LED_PIN          0
-#   define MAX_FRAMES       44
 
-#elif defined(PLATFORM_bulb)
+#if defined (PLATFORM_default)
+#   define PIN_LED          0
+#   define PIN_RX           2
+#   define PIN_TX           5
+
+#   define UART_BAUDRATE    9600
+
 #   define LEDS_PER_STRIP   8
 #   define NUM_STRIPS       2
-#   define LED_PIN          0
 #   define LED_LAYOUT       (LAYOUT_INCREMENTING | LAYOUT_WRAP_INVERT)
-#   define MAX_FRAMES       38
 
+#   define MAX_FRAMES       55
 #else
-#   error "No target platform was specified."
+#   error "No target platform specified."
 #endif
 
 #define LED_COUNT (LEDS_PER_STRIP * NUM_STRIPS)

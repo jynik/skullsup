@@ -1,11 +1,13 @@
 // SPDX License Identifier: GPL-3.0
 #include <Arduino.h>
-#include <DigiCDC.h>
+#include <SoftSerial.h>
 #include "Adafruit_NeoPixel.h"
 #include "hw_cfg.h"
 #include "version.h"
 
-#define CMD_WAKE        0xff    // Bring device out of initial state
+#define CMD_SUMMON      0xff    // Summon device for further commands.
+                                // This used to transition from:
+                                // (STATE_SLEEP|STATE_REANIMATED) -> STATE_IDLE
 #define CMD_RESET       0xfe    // Clear frame buffer, and set fixed color
 #define CMD_REANIMATE   0xfd    // Begin displaying frames
 #define CMD_SET_COLOR   0xfc    // Reset and display a fixed color
@@ -52,58 +54,56 @@ static uint8_t cmd_buf[CMD_BUF_LEN];   // Command buffer
 #define RESP_BUF_LEN 4
 static uint8_t resp_buf[RESP_BUF_LEN];
 
+// Handle to software UART
+static SoftSerial uart(PIN_RX, PIN_TX);
 
 // Handle to LED strip
-static Adafruit_NeoPixel leds =
-    Adafruit_NeoPixel(LED_COUNT, LED_PIN, NEO_GRB | NEO_KHZ800);
+static Adafruit_NeoPixel leds(LED_COUNT, PIN_LED, NEO_GRB | NEO_KHZ800);
 
-// Wake command
-static const uint8_t wake_cmd[CMD_BUF_LEN] = {
-    CMD_WAKE, '1', '3', '8',
+// Magic summon command sequance
+static const uint8_t summon_cmd[] = {
+    CMD_SUMMON, '1', '3', '8',
 };
 
-static void neopixel_set_all(uint8_t r, uint8_t g, uint8_t b, bool show)
+// Track where we are in the wake_cmd
+static uint8_t summon_idx = 0;
+
+#define SUMMON_CMD_ACK 0x9b
+
+void neopixel_set_all(uint8_t r, uint8_t g, uint8_t b, bool show)
 {
     for (unsigned int i = 0; i < LED_COUNT; i++) {
         leds.setPixelColor(i, r, g, b);
     }
 
     if (show) {
-        SerialUSB.refresh();
         leds.show();
-        SerialUSB.refresh();
     }
 }
 
-inline void ack_byte(uint8_t c) {
-    SerialUSB.write(~c);
-}
-
-/* It seems our RX buffer gets filled with some data as the USB ACM driver
- * attaches and (presumably?) configures the device. Wait for a magic wake_cmd
- * string before handling data. */
-void sleep_until_summoned()
-{
+// Check the UART for our magic sequence. Return's true when we've gotten it.
+bool is_summoned() {
     uint8_t c;
-    bool summoned = false;
-    uint8_t match = 0;
+    bool ret;
 
-    while (!summoned) {
-        if (!SerialUSB.available()) continue;
+    if (!uart.available()) return false;
 
-        c = SerialUSB.read();
-        if (c == wake_cmd[match]) {
-            match++;
-        } else {
-            match = 0;
+    c = uart.read();
+    if (c == summon_cmd[summon_idx]) {
+        summon_idx++;
+
+        if (summon_idx == sizeof(summon_cmd)) {
+            summon_idx = 0;
+            return true;
         }
+    } else {
+		summon_idx = 0;
+	}
 
-        summoned = (match >= sizeof(wake_cmd));
-        ack_byte(c);
-    }
+    return false;
 }
 
-static inline void reset_frames()
+inline void reset_frames()
 {
     frame_idx = 0;
     frame_count = 0;
@@ -115,18 +115,13 @@ void setup()
     leds.begin();
     reset_frames();
 
-    neopixel_set_all(16, 24, 8, true);
+    neopixel_set_all(24, 24, 24, true);
 
-    SerialUSB.begin();
-
+    uart.begin(UART_BAUDRATE);
     state = STATE_SLEEP;
-    sleep_until_summoned();
-    state = STATE_IDLE;
-
-    neopixel_set_all(0, 0,0,true);
 }
 
-static inline void show_frame(const struct frame *f)
+inline void show_frame(const struct frame *f)
 {
     if ((f->led_id & ALL_LEDS) == ALL_LEDS) {
       neopixel_set_all(f->r, f->g, f->b, false);
@@ -135,99 +130,132 @@ static inline void show_frame(const struct frame *f)
       leds.setPixelColor(f->led_id & ALL_LEDS, f->r, f->g, f->b);
     }
 
-    SerialUSB.refresh();
-
     if (!(f->led_id & NO_FRAME_DELAY)) {
         leds.show();
-        SerialUSB.delay(frame_dur_ms);
+        delay(frame_dur_ms);
     }
 }
 
+inline void enter_idle_state()
+{
+    reset_frames();
+    state = STATE_IDLE;
+}
+
+inline uint8_t process_cmd() {
+    uint8_t i, ack = 0;
+    uint8_t resp_len = 0;
+
+    for (i = 0; i < CMD_BUF_LEN; i++) {
+        ack += cmd_buf[i];
+    }
+
+    switch (cmd_buf[0]) {
+        case CMD_SUMMON:
+            // Nothing to do other than ACK.
+            break;
+
+        case CMD_SET_COLOR:
+            neopixel_set_all(cmd_buf[1], cmd_buf[2], cmd_buf[3], true);
+            // Fall-through
+
+        case CMD_RESET:
+            enter_idle_state();
+            break;
+
+        case CMD_REANIMATE:
+            frame_idx = 0;
+            frame_dur_ms = ((uint16_t) cmd_buf[1] << 8) | cmd_buf[2];
+            state = STATE_REANIMATED;
+            break;
+
+            // Send FW Version in little-endian byte order
+        case CMD_FW_VERSION:
+            resp_buf[0] = FW_VERSION & 0xff;
+            resp_buf[1] = FW_VERSION >> 8;
+            resp_len = 2;
+            break;
+
+        case CMD_NUM_STRIPS:
+            resp_buf[0] = NUM_STRIPS;
+            resp_len = 1;
+            break;
+
+        case CMD_STRIP_LEN:
+            resp_buf[0] = LEDS_PER_STRIP;
+            resp_len = 1;
+            break;
+
+        case CMD_LAYOUT:
+            resp_buf[0] = LED_LAYOUT;
+            resp_len = 1;
+            break;
+
+        case CMD_MAX_FRAMES:
+            resp_buf[0] = MAX_FRAMES;
+            resp_len = 1;
+            break;
+
+        default:
+            // Load Frame. The cmd nibble specifies the LED(s) to target
+            if (cmd_buf[0] < CMD_RESV_START) {
+                if (frame_count < MAX_FRAMES) {
+                    frames[frame_count].led_id  = cmd_buf[0];
+                    frames[frame_count].r       = cmd_buf[1];
+                    frames[frame_count].g       = cmd_buf[2];
+                    frames[frame_count].b       = cmd_buf[3];
+                    frame_count++;
+                }
+            }
+    }
+
+    cmd_idx = 0;
+    uart.write(ack);
+
+    if (resp_len != 0) {
+        uart.write(resp_buf, resp_len);
+        resp_len = 0;
+    }
+}
 
 void loop()
 {
-    char c;
-    uint8_t resp_len = 0;
-
-    while (SerialUSB.available()) {
-        c = SerialUSB.read();
-        cmd_buf[cmd_idx++] = c;
-        if (cmd_idx >= CMD_BUF_LEN) {
-
-            switch (cmd_buf[0]) {
-                case CMD_WAKE:
-                    break;
-
-                case CMD_SET_COLOR:
-                    neopixel_set_all(cmd_buf[1], cmd_buf[2], cmd_buf[3], true);
-                    // Fall-through
-
-                case CMD_RESET:
-                    state = STATE_IDLE;
-                    reset_frames();
-                    break;
-
-                case CMD_REANIMATE:
-                    state = STATE_REANIMATED;
-                    frame_idx = 0;
-                    frame_dur_ms = ((uint16_t) cmd_buf[1] << 8) | cmd_buf[2];
-                    break;
-
-                // Send FW Version in little-endian byte order
-                case CMD_FW_VERSION:
-                    resp_buf[0] = FW_VERSION & 0xff;
-                    resp_buf[1] = FW_VERSION >> 8;
-                    resp_len = 2;
-                    break;
-
-                case CMD_NUM_STRIPS:
-                    resp_buf[0] = NUM_STRIPS;
-                    resp_len = 1;
-                    break;
-
-                case CMD_STRIP_LEN:
-                    resp_buf[0] = LEDS_PER_STRIP;
-                    resp_len = 1;
-                    break;
-
-				case CMD_LAYOUT:
-					resp_buf[0] = LED_LAYOUT;
-					resp_len = 1;
-					break;
-
-                case CMD_MAX_FRAMES:
-                    resp_buf[0] = MAX_FRAMES;
-                    resp_len = 1;
-                    break;
-
-                // Load Frame. The cmd nibble specifies the LED(s) to target
-                default:
-                    if (cmd_buf[0] < CMD_RESV_START) {
-                        state = STATE_IDLE;
-                        if (frame_count < MAX_FRAMES) {
-                            frames[frame_count].led_id  = cmd_buf[0];
-                            frames[frame_count].r       = cmd_buf[1];
-                            frames[frame_count].g       = cmd_buf[2];
-                            frames[frame_count].b       = cmd_buf[3];
-                            frame_count++;
-                        }
-                    }
+    switch (state) {
+        case STATE_SLEEP:
+            // Wait until we're summoned. This is intended to provide a bit
+            // of resilience to spurious data if the host is still booting
+            // and configuring pins.
+            if (is_summoned()) {
+                enter_idle_state();
+                uart.write(SUMMON_CMD_ACK);
             }
+            break;
 
-            cmd_idx = 0;
-        }
+        case STATE_IDLE:
+            // Look for command and process it
+            while (uart.available()) {
+                char c = uart.read();
+                cmd_buf[cmd_idx++] = c;
+                if (cmd_idx >= CMD_BUF_LEN) {
+                    process_cmd();
+                }
+            }
+            break;
 
-        ack_byte(c);
-        if (resp_len != 0) {
-            SerialUSB.write(resp_buf, resp_len);
-            resp_len = 0;
-        }
-    }
-
-    if (state == STATE_REANIMATED) {
-        show_frame(&frames[frame_idx]);
-        if (++frame_idx >= frame_count) {
-            frame_idx = 0;
-        }
+        case STATE_REANIMATED:
+            if (is_summoned()) {
+                // We need to be in the idle state to accept commands.
+                // Otherwise, we may miss an byte while interrupts are
+                // disabled in the time-critical NeoPixel update routine.
+                enter_idle_state();
+                uart.write(SUMMON_CMD_ACK);
+            } else {
+                // Display the current frame
+                show_frame(&frames[frame_idx]);
+                if (++frame_idx >= frame_count) {
+                    frame_idx = 0;
+                }
+            }
+			break;
     }
 }
