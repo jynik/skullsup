@@ -8,7 +8,7 @@
 #define CMD_SUMMON      0xff    // Summon device for further commands.
                                 // This used to transition from:
                                 // (STATE_SLEEP|STATE_REANIMATED) -> STATE_IDLE
-#define CMD_RESET       0xfe    // Clear frame buffer, and set fixed color
+//                      0xfe       Reserved for future command
 #define CMD_REANIMATE   0xfd    // Begin displaying frames
 #define CMD_SET_COLOR   0xfc    // Reset and display a fixed color
 #define CMD_FW_VERSION  0xfb    // Retrieve firmware version
@@ -103,7 +103,7 @@ bool is_summoned() {
     return false;
 }
 
-inline void reset_frames()
+inline void clear_frames()
 {
     frame_idx = 0;
     frame_count = 0;
@@ -113,7 +113,7 @@ inline void reset_frames()
 void setup()
 {
     leds.begin();
-    reset_frames();
+    clear_frames();
 
     neopixel_set_all(24, 24, 24, true);
 
@@ -138,7 +138,7 @@ inline void show_frame(const struct frame *f)
 
 inline void enter_idle_state()
 {
-    reset_frames();
+    clear_frames();
     state = STATE_IDLE;
 }
 
@@ -157,10 +157,6 @@ inline uint8_t process_cmd() {
 
         case CMD_SET_COLOR:
             neopixel_set_all(cmd_buf[1], cmd_buf[2], cmd_buf[3], true);
-            // Fall-through
-
-        case CMD_RESET:
-            enter_idle_state();
             break;
 
         case CMD_REANIMATE:

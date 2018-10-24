@@ -7,7 +7,7 @@
 
 #define FW_VERSION_(ma, mi, p) (VER_MAJOR(ma) | VER_MINOR(mi) | VER_PATCH(p))
 
-#define FW_VERSION FW_VERSION_(0, 2, 0)
+#define FW_VERSION FW_VERSION_(0, 3, 0)
 
 #endif
 
