@@ -18,7 +18,6 @@ import (
 type reader struct {
 	httpClient *client.Client
 	skull      string
-	skullInit  bool
 	log        *logger.Logger
 
 	period      int64  // Sever polling period, in seconds. <= 0 implies no polling, run once.
@@ -52,15 +51,6 @@ func (r *reader) update() error {
 		return err
 	}
 	defer skull.Close()
-
-	if !r.skullInit {
-		err := skull.Reset()
-		if err != nil {
-			r.log.Printf("Failed to reset Skull: %s", err)
-			return err
-		}
-		r.skullInit = true
-	}
 
 	switch msg.Command {
 	case c.CMD_COLOR:

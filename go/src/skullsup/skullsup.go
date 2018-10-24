@@ -86,9 +86,6 @@ func New(name string) (*Skull, error) {
 	}
 
 	if err = s.summon(); err != nil {
-		if strings.Contains(err.Error(), "EOF") {
-			err = errors.New(ErrorTimeout)
-		}
 		return nil, err
 	}
 
@@ -119,15 +116,17 @@ func (s *Skull) summon() error {
 		time.Sleep(250 * time.Microsecond)
 	}
 
-	return err
-}
+	if strings.Contains(err.Error(), "EOF") {
+		err = errors.New(ErrorTimeout)
+	}
 
-func (s *Skull) Reset() error {
-	_, err := s.dev.write([]byte{cmd_reset, 0x00, 0x00, 0x00}, true)
 	return err
 }
 
 func (s *Skull) setColor(c Color) error {
+	if err := s.summon(); err != nil {
+		return err
+	}
 	_, err  := s.dev.write([]byte{cmd_set_color, c.red, c.green, c.blue}, true)
 	return err
 }
@@ -179,22 +178,19 @@ func sanitizeStrSlice(strs []string) []string {
 	return ret
 }
 
-func (s *Skull) Reanimate(frames []string, period uint16) error {
-	frames = sanitizeStrSlice(frames)
+func (s *Skull) Reanimate(frameStrs []string, period uint16) error {
+	frameStrs = sanitizeStrSlice(frameStrs)
 
-	// Clear out any previous animations
-	if err := s.Reset(); err != nil {
+	if err := s.summon(); err != nil {
 		return err
 	}
 
-	for _, frameStr := range frames {
+	frames := []Frame{}
+	for _, frameStr := range frameStrs {
 		if f, err := NewFrame(frameStr); err != nil {
 			return err
 		} else {
-			if err = s.loadFrame(f); err != nil {
-				s.Reset()
-				return err
-			}
+			frames = append(frames, f)
 		}
 	}
 
@@ -213,13 +209,11 @@ func (s *Skull) Incant(psalm string, args []string, period uint16) error {
 		period = defaultPeriod
 	}
 
-	// Clear out any previous animations
-	if err = s.Reset(); err != nil {
+	if err := s.summon(); err != nil {
 		return err
 	}
 
 	if err = s.loadFrames(frames); err != nil {
-		s.Reset()
 		return err
 	}
 
