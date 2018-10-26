@@ -13,7 +13,7 @@ This layer depends on:
   layers: meta, meta-poky, meta-yocto-bsp
   branch: rocko
 
-This layer has been tested using a Raspberry Pi, which has 
+This layer has been tested using a Raspberry Pi, which has
 the following dependencies:
 
   URI: git://git.openembedded.org/meta-openembedded
@@ -69,12 +69,27 @@ SKULLSUP_REMOTE_HOST    The hostname or IP address of the skullsup-queue-server
 SKULLSUP_REMOTE_PORT    The port the skullsup-queue-server is listening on
 SKULLSUP_POLL_PERIOD    The number of seconds between dequeue attempts
 
-SKULLSUP_DIR            The base directory for skullsup configuration and log files.
+SKULLSUP_DIR            Base directory for skullsup configuration and log files.
                         Use /opt/skullsup unless you have another preference.
 
-SKULLSUP_QUEUE_READER_CONFIG    The full path to the skullsup-queue-reader 
+SKULLSUP_QUEUE_READER_CONFIG    The full path to the skullsup-queue-reader
                                 configuration file that you want installed
                                 in the image.
+
+
+The default /etc/network/interfaces ships with both wlan0 and eth0 configured
+automatically with DHCP. The following are optional if you use eth0 or make
+some other modifications such that you don't require WiFi.
+
+**IMPORTANT**: Be aware that storing your SSID and PSK in the image implies
+that anyone with access to your Yocto build environment, build artifacts
+(i.e. image file)or your platform could connect to your network!
+
+SKULLSUP_WIFI_SSID      SSID of the WiFi network that shall be used.
+SKULLSUP_WPA_PSK        The WiFi WPA2 PSK that should be used. This should be
+                        the in hexadecimal format, as display by the output of
+                        the wpa_passphrase program.
+
 
 After filling the above items in, you should be able to run the following
 to create an image that you can boot on your platform.
