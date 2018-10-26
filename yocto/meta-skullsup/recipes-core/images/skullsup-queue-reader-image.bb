@@ -5,6 +5,7 @@ inherit core-image
 
 IMAGE_INSTALL += "\
     init-iptables \
+    ntp \
     skullsup-queue-reader \
     skullsup-queue-reader-initscripts \
     skullsup-queue-reader-config \
