@@ -15,7 +15,7 @@ do_install() {
     fi
 
     install -d ${D}${SKULLSUP_DIR} 
-    install -m 644 ${SKULLSUP_QUEUE_READER_CONFIG} ${D}${SKULLSUP_DIR}
+    install -m 644 ${SKULLSUP_QUEUE_READER_CONFIG} ${D}${SKULLSUP_DIR}/skullsup-queue-reader.conf
 }
 
 FILES_${PN} = "${SKULLSUP_DIR}"
