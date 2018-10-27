@@ -25,6 +25,12 @@ do_configure() {
         bbnote "SKULLSUP_DIR ${INFO_SUFFIX}"
     fi
 
+    if [ -z "${SKULLSUP_DEVICE}" ]; then
+        bbnote "SKULLSUP_DEVICE ${INFO_SUFFIX}"
+    else
+        sed -ie "s/^SKULLSUP_DEVICE=.*/SKULLSUP_DEVICE=${SKULLSUP_DEVICE}/g" ${S}/${DAEMON_ENV}
+    fi
+
     if [ -z "${SKULLSUP_REMOTE_HOST}" ]; then
         bbfatal "SKULLSUP_REMOTE_HOST is not defined. Specify this in your local.conf"
     else
@@ -38,7 +44,7 @@ do_configure() {
     fi
 
     if [ -z "${SKULLSUP_POLL_PERDIOD}" ]; then
-        bbnote "SKULLSUP_POLL_PERDIOD ${INFO_SUFFIX}"
+        bbnote "SKULLSUP_POLL_PERIOD ${INFO_SUFFIX}"
     else
         sed -ie "s/^SKULLSUP_POLL_PERIOD=.*/SKULLSUP_POLL_PERIOD=${SKULLSUP_POLL_PERIOD}/g" ${S}/${DAEMON_ENV}
     fi

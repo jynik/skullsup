@@ -11,11 +11,12 @@ start() {
               -p ${SKULLSUP_PID_FILE}               \
               -l ${SKULLSUP_PID_FILE}               \
               /usr/bin/skullsup-queue-reader        \
+                  --skull  ${SKULLSUP_DEVICE}       \
                   --remote ${SKULLSUP_REMOTE_HOST}  \
-                  --port   ${SKULLSUP_REMOTE_PORT} 	\
+                  --port   ${SKULLSUP_REMOTE_PORT}  \
                   --period ${SKULLSUP_POLL_PERIOD}  \
                   --log    ${SKULLSUP_LOG_FILE}     \
-				  --client-config ${SKULLSUP_CONFIG}
+                  --client-config ${SKULLSUP_CONFIG}
 
 }
 
@@ -26,7 +27,7 @@ stop() {
     else
         echo 'Stopping SkullsUp! Queue Reader....'
         READER_PID=$(cat "${SKULLSUP_PID_FILE}" | sed -e 's/[^\d]//g')
-		rm -f ${SKULLSUP_PID_FILE}
+        rm -f ${SKULLSUP_PID_FILE}
         kill "${READER_PID}"
     fi
 }

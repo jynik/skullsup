@@ -64,17 +64,27 @@ Before you can build the skullsup-queue-reader-image, you must add
 a few items in your local.conf. These items will be used to fill in
 configuration file entries.
 
-SKULLSUP_REMOTE_HOST    The hostname or IP address of the skullsup-queue-server
+SKULLSUP_DEVICE         Serial port the Skulls Up! device is connected to.
+                        Defaults to /dev/serial0.
 
-SKULLSUP_REMOTE_PORT    The port the skullsup-queue-server is listening on
-SKULLSUP_POLL_PERIOD    The number of seconds between dequeue attempts
+SKULLSUP_REMOTE_HOST    The hostname or IP address of the skullsup-queue-server.
+                        This is required.
+
+SKULLSUP_REMOTE_PORT    The port the skullsup-queue-server is listening on.
+                        Defaults to 16661 if not specified.
+
+SKULLSUP_POLL_PERIOD    The number of seconds between dequeue attempts.
+                        Defaults to 10 if not specified.
 
 SKULLSUP_DIR            Base directory for skullsup configuration and log files.
                         Use /opt/skullsup unless you have another preference.
 
 SKULLSUP_QUEUE_READER_CONFIG    The full path to the skullsup-queue-reader
                                 configuration file that you want installed
-                                in the image.
+                                in the image. This is required.
+
+The following items are optional and will fall back to default values if
+not specified. However, these defaults may not neccess
 
 
 The default /etc/network/interfaces ships with both wlan0 and eth0 configured
