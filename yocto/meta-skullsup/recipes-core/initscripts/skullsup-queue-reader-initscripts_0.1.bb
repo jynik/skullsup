@@ -43,7 +43,7 @@ do_configure() {
         sed -ie "s/^SKULLSUP_REMOTE_PORT=.*/SKULLSUP_REMOTE_PORT=${SKULLSUP_REMOTE_PORT}/g" ${S}/${DAEMON_ENV}
     fi
 
-    if [ -z "${SKULLSUP_POLL_PERDIOD}" ]; then
+    if [ -z "${SKULLSUP_POLL_PERIOD}" ]; then
         bbnote "SKULLSUP_POLL_PERIOD ${INFO_SUFFIX}"
     else
         sed -ie "s/^SKULLSUP_POLL_PERIOD=.*/SKULLSUP_POLL_PERIOD=${SKULLSUP_POLL_PERIOD}/g" ${S}/${DAEMON_ENV}
