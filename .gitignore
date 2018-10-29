@@ -7,7 +7,7 @@
 /go/skullsup-queue-reader
 /go/skullsup-queue-writer
 /go/skullsup-queue-incantor
-/go/skullsup-queue-randcolor
+/go/skullsup-queue-color
 /go/skullsup-queue-server
 
 *.key

@@ -1,0 +1,28 @@
+#!/bin/sh
+
+test_dir=${GOPATH}/src/github.com/jynik/skullsup/go/test
+
+export SKULLSUP_CERT_DIR=${test_dir}/certs
+export SKULLSUP_CONFIG_DIR=${test_dir}/configs
+export SKULLSUP_KEY_DIR=${test_dir}/keys
+export SKULLSUP_LOG_DIR=${test_dir}/logs
+
+if [ ! -d "${SKULLSUP_CERT_DIR}" ]; then
+    echo "Certificate directory is missing: ${SKULLSUP_CERT_DIR}" >&2
+elif [ ! -d "${SKULLSUP_CONFIG_DIR}" ]; then
+    echo "Config directory is missing: ${SKULLSUP_CONFIG_DIR}" >&2
+elif [ ! -d "${SKULLSUP_KEY_DIR}" ]; then
+    echo "Key directory is missing: ${SKULLSUP_KEY_DIR}" >&2
+elif [ ! -d "${SKULLSUP_LOG_DIR}" ]; then
+    echo "Log directory is missing: ${SKULLSUP_LOG_DIR}" >&2
+fi
+
+
+echo
+echo "Loaded SkullUp! test environment"
+echo "-----------------------------------------------------------------------"
+echo "  SKULLSUP_CERT_DIR    ${SKULLSUP_CERT_DIR}"
+echo "  SKULLSUP_CONFIG_DIR  ${SKULLSUP_CONFIG_DIR}"
+echo "  SKULLSUP_KEY_DIR     ${SKULLSUP_KEY_DIR}"
+echo "  SKULLSUP_LOG_DIR     ${SKULLSUP_LOG_DIR}"
+echo 

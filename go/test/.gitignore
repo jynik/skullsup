@@ -1,0 +1,8 @@
+*.key
+*.pem
+*.csr
+*.srl
+
+keys/*
+logs/*
+certs/*
