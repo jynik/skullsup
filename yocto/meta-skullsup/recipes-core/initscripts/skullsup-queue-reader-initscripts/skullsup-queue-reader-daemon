@@ -3,21 +3,13 @@
 source /etc/init.d/skullsup-queue-reader-daemon.env
 
 start() {
-    echo 'Starting SkullsUp! Queue Reader...'
-    mkdir -p ${SKULLSUP_LOG_DIR}
-    daemonize -u skullsup                           \
-              -c ${SKULLSUP_DIR}                    \
-              -e ${SKULLSUP_ERR_FILE}               \
-              -p ${SKULLSUP_PID_FILE}               \
-              -l ${SKULLSUP_PID_FILE}               \
-              /usr/bin/skullsup-queue-reader        \
-                  --skull  ${SKULLSUP_DEVICE}       \
-                  --remote ${SKULLSUP_REMOTE_HOST}  \
-                  --port   ${SKULLSUP_REMOTE_PORT}  \
-                  --period ${SKULLSUP_POLL_PERIOD}  \
-                  --log    ${SKULLSUP_LOG_FILE}     \
-                  --client-config ${SKULLSUP_CONFIG}
-
+    echo "Starting SkullsUp! Queue Reader with ${SKULLSUP_CFG}"
+    daemonize -u skullsup                       \
+              -c ${SKULLSUP_DIR}                \
+              -p ${SKULLSUP_PID_FILE}           \
+              -l ${SKULLSUP_PID_FILE}           \
+              /usr/bin/skullsup-queue-reader    \
+                  --cfg ${SKULLSUP_CFG}
 }
 
 stop() {
@@ -25,7 +17,7 @@ stop() {
         echo 'No SkullsUp! Queue Reader is running (or a PID file went missing).' >&2
         false
     else
-        echo 'Stopping SkullsUp! Queue Reader....'
+        echo 'Stopping SkullsUp! Queue Reader...'
         READER_PID=$(cat "${SKULLSUP_PID_FILE}" | sed -e 's/[^\d]//g')
         rm -f ${SKULLSUP_PID_FILE}
         kill "${READER_PID}"
