@@ -27,7 +27,7 @@ A little demo can be [found here].
 The setup can be operated in a rot-alone mode, with the :skull: connected
 directly to a host via a [USB to UART](https://www.sparkfun.com/products/12731) adapter. 
 
-To build the firmware, you'll need to follow the Digispark installation guide.
+To build the firmware, you'll need to follow the [Digispark installation guide].
 From there, you can just run a `make && make install` in the [firmware] directory.
 
 [Digispark installation guide]: https://digistump.com/wiki/digispark/tutorials/connecting

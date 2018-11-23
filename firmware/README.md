@@ -14,12 +14,11 @@ This firmware contains a modified version of the [Adafruit NeoPixel Library](htt
 The changes to the library, discussed in this [issue tracker item], were needed to
 reduce the size of the library in order to recover sufficient codespace.
 
-[issue tracker item](https://github.com/adafruit/Adafruit_NeoPixel/issues/142) 
+[issue tracker item]: https://github.com/adafruit/Adafruit_NeoPixel/issues/142 
 
 # Build #
 
 ~~~
-make PLATFORM=skull
-make prog
+make && make install
 ~~~
 
