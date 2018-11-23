@@ -11,18 +11,18 @@ This layer depends on:
 
   URI: git://git.yoctoproject.org/poky.git
   layers: meta, meta-poky, meta-yocto-bsp
-  branch: rocko
+  branch: sumo
 
 This layer has been tested using a Raspberry Pi, which has
 the following dependencies:
 
   URI: git://git.openembedded.org/meta-openembedded
   layers: meta-oe, meta-multimedia, meta-networking, meta-python
-  branch: rocko
+  branch: sumo
 
   URI: https://github.com/agherzan/meta-raspberrypi.git
   layers: meta-raspberrypi
-  branch: rocko
+  branch: sumo
 
 Patches
 =======
