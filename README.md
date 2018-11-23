@@ -111,7 +111,7 @@ In addition to the Rot-Alone mode, you can use the grossly overengineered IoT
 setup in which the Skull is conntected to Raspberry Pi Zero W
 running a custom Linux build. One or more skulls retrieve animations and
 settings from a server, and the programs descriped below may be used to
-submit animiations the the server.
+submit animiations to the server.
 
 Note that you'll need a [logic level converter] to connect the DigiSpark's 5V
 UART to the RPi0's 3.3V UART.
