@@ -10,7 +10,7 @@ const Major = 1
 const Minor = 0
 
 // SkullsUp! API Patch version
-const Patch = 0
+const Patch = 1
 
 // SkullsIp! API version description suffix
 const Suffix = ""
